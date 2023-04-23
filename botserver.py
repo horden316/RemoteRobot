@@ -43,7 +43,8 @@ def ServerStart():
             print("l")
             if '\a\b' in data:
                 print(R"legal data")
-                #Stringhandle(data, c)
+                data = data[:-2]
+                Stringhandle(data, c)
 
             c.close()
             break  # child executes only one cycle
@@ -63,8 +64,8 @@ def Stringhandle(data, c):
         LoginStatus = 1
     if LoginStatus == 1:  # handle with the CLIENT_KEY_ID
         print("innnnnn")
-        NameASCI = UserName.encode(ascii)
-        print(NameASCI)
+        NameASCI = [ord(char) for char in UserName]
+        print("Name Ascii is : " + str(NameASCI))
 
 
 if __name__ == '__main__':
