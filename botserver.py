@@ -40,9 +40,8 @@ def ServerStart():
         try:
             # recv gets sequence of bytes -> decoding into string
             data = c.recv(1024).decode()
-            print("l")
             if '\a\b' in data:
-                print(R"legal data")
+                print("legal data")
                 data = data[:-2]
                 Stringhandle(data, c)
 
@@ -57,15 +56,26 @@ def ServerStart():
 def Stringhandle(data, c):
     print("Full data is : "+data)
     global LoginStatus
+    global AuthenticationList
     if LoginStatus == 0:
         UserName = data
         print("UserName is:" + UserName)
         c.send("107 KEY REQUEST\a\b".encode())  # Sending SERVER_KEY_REQUEST
         LoginStatus = 1
     if LoginStatus == 1:  # handle with the CLIENT_KEY_ID
+        data = c.recv(1024).decode()
+        if '\a\b' in data:
+            print("legal data")
+            data = data[:-2]
+            data = int(data)
         print("innnnnn")
         NameASCI = [ord(char) for char in UserName]
         print("Name Ascii is : " + str(NameASCI))
+        ResultHash = (sum(NameASCI)*1000 %
+                      65536 + int(AuthenticationList[data][0])) % 65536
+        print("hash: " + str(ResultHash))
+        # Sending SERVER_CONFIRMATION
+        c.send((str(ResultHash)+"\a\b").encode())
 
 
 if __name__ == '__main__':
