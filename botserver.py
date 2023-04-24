@@ -11,7 +11,7 @@ AuthenticationList = [[23019, 32037], [32037, 29295],
 # 0 means the user haven't done anything
 # 1 means got the CLIENT_USERNAME
 # 2 means got the CLIENT_KEY_ID
-# 4 means successful login
+# 3 means successful login
 
 
 def ServerStart():
@@ -40,14 +40,22 @@ def ServerStart():
             LoginStatus = 0
             UserName = ""
             KeyID = 5
+            dir = 3
 
-            while LoginStatus < 5:
+            while LoginStatus < 3:
                 data = c.recv(1024).decode()
                 if '\a\b' in data:
                     print("legal data")
                     data = data[:-2]
                     LoginStatus, UserName, KeyID = Login(
                         data, c, LoginStatus, UserName, KeyID)
+
+            while LoginStatus == 3:
+                data = c.recv(1024).decode()
+                if '\a\b' in data:
+                    print("legal data")
+                    data = data[:-2]
+                    Navi(data, c, dir)
 
             c.close()
             break  # child executes only one cycle
@@ -88,6 +96,7 @@ def Login(data, c, LoginStatus, UserName, KeyID):
         if (data == ResultHash):
             # Sending SERVER_CONFIRMATION
             c.send("200 OK\a\b".encode())
+            c.send("102 MOVE\a\b".encode())
         elif (data != ResultHash):
             # Sending SERVER_CONFIRMATION
             c.send("300 LOGIN FAILED\a\b".encode())
@@ -95,6 +104,18 @@ def Login(data, c, LoginStatus, UserName, KeyID):
         return 3, UserName, KeyID
 
     return 5, UserName, KeyID
+
+
+def Navi(data, c, dir):
+    input = data.split()
+    position = [int(input[i]) for i in range(1, len(input))]
+    print(position)
+    if position[1] > 0:
+        if dir == 0:
+            c.send("103 TURN LEFT\a\b".encode())
+            dir = 3
+        elif dir == 3:
+            c.send("102 MOVE\a\b".encode())
 
 
 if __name__ == '__main__':
