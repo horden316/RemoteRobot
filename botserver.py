@@ -12,6 +12,7 @@ AuthenticationList = [[23019, 32037], [32037, 29295],
 # 1 means got the CLIENT_USERNAME
 # 2 means got the CLIENT_KEY_ID
 # 3 means successful login
+# 3 means finish
 
 
 def ServerStart():
@@ -47,6 +48,9 @@ def ServerStart():
                 data = RecieveData(c)
                 LoginStatus, UserName, KeyID = Login(
                     data, c, LoginStatus, UserName, KeyID)
+                if KeyID > 4:
+                    c.send("303 KEY OUT OF RANGE\a\b".encode())
+                    LoginStatus = 4
 
             while LoginStatus == 3:  # Successful Login
                 data = RecieveData(c)
