@@ -96,6 +96,7 @@ def Login(data, c, LoginStatus, UserName, KeyID):
         elif (data != ResultHash):
             # Sending SERVER_CONFIRMATION
             c.send("300 LOGIN FAILED\a\b".encode())
+            return 4, UserName, KeyID
 
         return 3, UserName, KeyID
 
