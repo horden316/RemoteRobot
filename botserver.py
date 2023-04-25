@@ -68,12 +68,13 @@ def Login(data, c, LoginStatus, UserName, KeyID):
     if LoginStatus == 0:
         UserName = data
         print(UserName)
-        if (len(UserName) > 18) or ('\a' in UserName) or ('\b' in UserName):
-            print("strangename")
-        print("UserName is:" + UserName)
-        # Sending SERVER_KEY_REQUEST
-        c.send("107 KEY REQUEST\a\b".encode())
-        return 1, UserName, KeyID
+        if (len(UserName) > 18) or ('\a\b' in UserName):
+            c.send("301 SYNTAX ERROR\a\b".encode())
+        else:
+            print("UserName is:" + UserName)
+            # Sending SERVER_KEY_REQUEST
+            c.send("107 KEY REQUEST\a\b".encode())
+            return 1, UserName, KeyID
 
     elif LoginStatus == 1:  # handle with CLIENT_KEY_ID
         data = int(data)
