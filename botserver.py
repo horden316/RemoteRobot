@@ -44,10 +44,43 @@ def ServerStart():
             lastPos = [100, 100]
             Inimove = 0  # first time to move
 
-            while LoginStatus < 3:
+            while LoginStatus == 0:
+                UserName, LoginStatus = RecieveUserName1(
+                    c, UserName, LoginStatus)
+
+            while LoginStatus == 1:
                 data = RecieveData(c)
-                LoginStatus, UserName, KeyID = Login(
-                    data, c, LoginStatus, UserName, KeyID)
+                data = int(data)
+                KeyID = data
+                if KeyID > 4:
+                    c.send("303 KEY OUT OF RANGE\a\b".encode())
+                    LoginStatus = 4
+                NameASCI = [ord(char) for char in UserName]
+                print("Name Ascii is : " + str(NameASCI))
+                ResultHash = (sum(NameASCI)*1000 %
+                              65536 + int(AuthenticationList[KeyID][0])) % 65536
+                print("hash: " + str(ResultHash))
+                # Sending SERVER_CONFIRMATION
+                c.send((str(ResultHash)+"\a\b").encode())
+                LoginStatus = 2
+
+            while LoginStatus == 2:
+                data = RecieveData(c)
+                data = int(data)
+                NameASCI = [ord(char) for char in UserName]
+                print("Name Ascii is : " + str(NameASCI))
+                ResultHash = (sum(NameASCI)*1000 %
+                              65536 + int(AuthenticationList[KeyID][1])) % 65536
+                print("hash: " + str(ResultHash))
+                if (data == ResultHash):
+                    # Sending SERVER_CONFIRMATION
+                    c.send("200 OK\a\b".encode())
+                    c.send("102 MOVE\a\b".encode())
+                    LoginStatus = 3
+                elif (data != ResultHash):
+                    # Sending SERVER_CONFIRMATION
+                    c.send("300 LOGIN FAILED\a\b".encode())
+                    LoginStatus = 4
 
             while LoginStatus == 3:  # Successful Login
                 data = RecieveData(c)
@@ -62,58 +95,33 @@ def ServerStart():
             c.close()
 
 
-def Login(data, c, LoginStatus, UserName, KeyID):
-    print("Full data is : "+data)
-    global AuthenticationList
-    if LoginStatus == 0:
-        UserName = data
-        print(UserName)
-        if (len(UserName) > 18) or ('\a\b' in UserName):
-            c.send("301 SYNTAX ERROR\a\b".encode())
-        else:
-            print("UserName is:" + UserName)
-            # Sending SERVER_KEY_REQUEST
-            c.send("107 KEY REQUEST\a\b".encode())
-            return 1, UserName, KeyID
+def RecieveUserName1(c, UserName, LoginStatus):
+    UserName = RecieveData(c)
+    print("Username is: "+str(UserName))
+    if (len(UserName) > 18) or ('\a\b' in UserName):
+        c.send("301 SYNTAX ERROR\a\b".encode())
+        LoginStatus = 4
+    else:
+        LoginStatus = 1
+        c.send("107 KEY REQUEST\a\b".encode())
 
-    elif LoginStatus == 1:  # handle with CLIENT_KEY_ID
-        data = int(data)
-        KeyID = data
-        if KeyID > 4:
-            c.send("303 KEY OUT OF RANGE\a\b".encode())
-            LoginStatus = 4
-        NameASCI = [ord(char) for char in UserName]
-        print("Name Ascii is : " + str(NameASCI))
-        ResultHash = (sum(NameASCI)*1000 %
-                      65536 + int(AuthenticationList[KeyID][0])) % 65536
-        print("hash: " + str(ResultHash))
-        # Sending SERVER_CONFIRMATION
-        c.send((str(ResultHash)+"\a\b").encode())
-        return 2, UserName, KeyID
+    return UserName, LoginStatus
 
-    elif LoginStatus == 2:  # handle with CLIENT_CONFIRMATION
-        data = int(data)
-        NameASCI = [ord(char) for char in UserName]
-        print("Name Ascii is : " + str(NameASCI))
-        ResultHash = (sum(NameASCI)*1000 %
-                      65536 + int(AuthenticationList[KeyID][1])) % 65536
-        print("hash: " + str(ResultHash))
-        if (data == ResultHash):
-            # Sending SERVER_CONFIRMATION
-            c.send("200 OK\a\b".encode())
-            c.send("102 MOVE\a\b".encode())
-        elif (data != ResultHash):
-            # Sending SERVER_CONFIRMATION
-            c.send("300 LOGIN FAILED\a\b".encode())
-            return 4, UserName, KeyID
 
-        return 3, UserName, KeyID
+# def Login(data, c, LoginStatus, UserName, KeyID):
+#     print("Full data is : "+data)
+#     global AuthenticationList
 
-    return 5, UserName, KeyID
+#     if LoginStatus == 1:  # handle with CLIENT_KEY_ID
+
+#     elif LoginStatus == 2:  # handle with CLIENT_CONFIRMATION
+
+#         return 3, UserName, KeyID
+
+#     return 5, UserName, KeyID
 
 
 def Navi(data, c, LoginStatus, lastPos, Inimove):
-    sleep(1)
 
     position = GetPosition(data)
 
@@ -217,11 +225,16 @@ def Navi(data, c, LoginStatus, lastPos, Inimove):
 
 def RecieveData(c):
     data = c.recv(1024).decode()
-    if '\a\b' in data:
+    T_data = data
+    print("data is: "+str(T_data))
+    while T_data[-2:] != '\a\b':
+        data = c.recv(1024).decode()
+        T_data += data
+
+    if '\a\b' in T_data:
         print("legal data")
-        data = data[:-2]
-        print("data is: "+str(data))
-    return data
+        T_data = T_data[:-2]
+    return T_data
 
 
 def GetPosition(data):
