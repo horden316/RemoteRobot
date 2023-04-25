@@ -39,7 +39,7 @@ def ServerStart():
 
             LoginStatus = 0
             UserName = ""
-            KeyID = 5
+            KeyID = -1
             dir = 2
             lastPos = [100, 100]
             Inimove = 0  # first time to move
@@ -48,9 +48,6 @@ def ServerStart():
                 data = RecieveData(c)
                 LoginStatus, UserName, KeyID = Login(
                     data, c, LoginStatus, UserName, KeyID)
-                if KeyID > 4:
-                    c.send("303 KEY OUT OF RANGE\a\b".encode())
-                    LoginStatus = 4
 
             while LoginStatus == 3:  # Successful Login
                 data = RecieveData(c)
@@ -77,6 +74,9 @@ def Login(data, c, LoginStatus, UserName, KeyID):
     elif LoginStatus == 1:  # handle with CLIENT_KEY_ID
         data = int(data)
         KeyID = data
+        if KeyID > 4:
+            c.send("303 KEY OUT OF RANGE\a\b".encode())
+            LoginStatus = 4
         NameASCI = [ord(char) for char in UserName]
         print("Name Ascii is : " + str(NameASCI))
         ResultHash = (sum(NameASCI)*1000 %
