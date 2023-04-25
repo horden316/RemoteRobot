@@ -7,6 +7,7 @@ from time import sleep
 AuthenticationList = [[23019, 32037], [32037, 29295],
                       [18789, 13603], [16443, 29533], [18189, 21952]]
 
+DataList = []
 
 # 0 means the user haven't done anything
 # 1 means got the CLIENT_USERNAME
@@ -61,6 +62,7 @@ def ServerStart():
                               65536 + int(AuthenticationList[KeyID][0])) % 65536
                 print("hash: " + str(ResultHash))
                 # Sending SERVER_CONFIRMATION
+                print("Server Conformation send")
                 c.send((str(ResultHash)+"\a\b").encode())
                 LoginStatus = 2
 
@@ -224,17 +226,33 @@ def Navi(data, c, LoginStatus, lastPos, Inimove):
 
 
 def RecieveData(c):
-    data = c.recv(1024).decode()
-    T_data = data
-    print("data is: "+str(T_data))
-    while T_data[-2:] != '\a\b':
-        data = c.recv(1024).decode()
-        T_data += data
+    global DataList
 
-    if '\a\b' in T_data:
-        print("legal data")
-        T_data = T_data[:-2]
-    return T_data
+    print("len is :"+str(len(DataList)))
+    print("datalist is :" + str(DataList))
+    if len(DataList) < 1:
+        data = c.recv(1024).decode()
+        T_data = data
+        print("data is: "+str(T_data))
+        while T_data[-2:] != '\a\b':
+            data = c.recv(1024).decode()
+            T_data += data
+
+        if '\a\b' in T_data:
+            print("legal data")
+            T_data = T_data[:-2]
+
+        DataList.extend(T_data.split('\a\b'))
+
+    returnData = DataList[0]
+
+    DataList.pop(0)
+
+    DataList = DataList[0:]
+
+    print("Reteun data is :" + str(returnData))
+
+    return returnData
 
 
 def GetPosition(data):
