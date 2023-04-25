@@ -12,7 +12,7 @@ AuthenticationList = [[23019, 32037], [32037, 29295],
 # 1 means got the CLIENT_USERNAME
 # 2 means got the CLIENT_KEY_ID
 # 3 means successful login
-# 3 means finish
+# 4 means finish
 
 
 def ServerStart():
@@ -67,8 +67,12 @@ def Login(data, c, LoginStatus, UserName, KeyID):
     global AuthenticationList
     if LoginStatus == 0:
         UserName = data
+        print(UserName)
+        if (len(UserName) > 18) or ('\a' in UserName) or ('\b' in UserName):
+            print("strangename")
         print("UserName is:" + UserName)
-        c.send("107 KEY REQUEST\a\b".encode())  # Sending SERVER_KEY_REQUEST
+        # Sending SERVER_KEY_REQUEST
+        c.send("107 KEY REQUEST\a\b".encode())
         return 1, UserName, KeyID
 
     elif LoginStatus == 1:  # handle with CLIENT_KEY_ID
@@ -108,6 +112,7 @@ def Login(data, c, LoginStatus, UserName, KeyID):
 
 
 def Navi(data, c, LoginStatus, lastPos, Inimove):
+    sleep(1)
 
     position = GetPosition(data)
 
@@ -133,6 +138,9 @@ def Navi(data, c, LoginStatus, lastPos, Inimove):
         if (position[0]-lastPos[0] != 0):
             # while robot first arrive the y-asis turn right whatever
             c.send("104 TURN RIGHT\a\b".encode())
+            data = RecieveData(c)
+            lastPos = position
+            c.send("102 MOVE\a\b".encode())
         if (abs(lastPos[1])-abs(position[1]) == 1):
             lastPos = position
             c.send("102 MOVE\a\b".encode())
@@ -152,6 +160,9 @@ def Navi(data, c, LoginStatus, lastPos, Inimove):
         if (position[1]-lastPos[1] != 0):
             # while robot first arrive the x-asis turn right whatever
             c.send("104 TURN RIGHT\a\b".encode())
+            data = RecieveData(c)
+            lastPos = position
+            c.send("102 MOVE\a\b".encode())
         if (abs(lastPos[0])-abs(position[0]) == 1):
             lastPos = position
             c.send("102 MOVE\a\b".encode())
