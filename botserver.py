@@ -149,32 +149,57 @@ def Navi(data, c, LoginStatus, lastPos, Inimove):
         global ContiMoveFowardCount
         if ContiMoveFowardCount > 2:
             #data = RecieveData(c)
-            TurnRight(c)
-            data = RecieveData(c)
-            MoveFoward(c)
-            data = RecieveData(c)
+            if (abs(position[1]) != 1):
+                TurnRight(c)
+                data = RecieveData(c)
+                MoveFoward(c)
+                data = RecieveData(c)
 
-            TurnLeft(c)
-            data = RecieveData(c)
-            MoveFoward(c)
-            data = RecieveData(c)
-            MoveFoward(c)
-            data = RecieveData(c)
+                TurnLeft(c)
+                data = RecieveData(c)
+                MoveFoward(c)
+                data = RecieveData(c)
+                MoveFoward(c)
+                data = RecieveData(c)
 
-            TurnLeft(c)
-            data = RecieveData(c)
-            MoveFoward(c)
-            data = RecieveData(c)
+                TurnLeft(c)
+                data = RecieveData(c)
+                MoveFoward(c)
+                data = RecieveData(c)
 
-            position = GetPosition(data)
-            lastPos = position
+                position = GetPosition(data)
+                lastPos = position
 
-            TurnRight(c)
+                TurnRight(c)
+            elif (position[0] > 0 and position[1] == 1) or (position[0] < 0 and position[1] == -1):  # Quadrant1 3
+                TurnRight(c)
+                data = RecieveData(c)
+                MoveFoward(c)
+                data = RecieveData(c)
+                TurnLeft(c)
+                data = RecieveData(c)
+                MoveFoward(c)
+                data = RecieveData(c)
 
-            # data = RecieveData(c)
-            # position = GetPosition(data)
-            # lastPos = position
-            # MoveFoward(c)
+                position = GetPosition(data)
+                lastPos = position
+
+                TurnRight(c)
+
+            elif (position[0] < 0 and position[1] == 1) or (position[0] > 0 and position[1] == -1):  # Quadrant2 4
+                TurnLeft(c)
+                data = RecieveData(c)
+                MoveFoward(c)
+                data = RecieveData(c)
+                TurnRight(c)
+                data = RecieveData(c)
+                MoveFoward(c)
+                data = RecieveData(c)
+
+                position = GetPosition(data)
+                lastPos = position
+
+                TurnLeft(c)
 
             return(LoginStatus, lastPos, Inimove)
         else:
@@ -250,7 +275,7 @@ def Navi(data, c, LoginStatus, lastPos, Inimove):
             lastPos = position
             MoveFoward(c)
 
-        elif (abs(lastPos[1])-abs(position[1]) == 1):
+        if (abs(lastPos[1])-abs(position[1]) == 1):
             lastPos = position
             MoveFoward(c)
 
@@ -262,9 +287,6 @@ def Navi(data, c, LoginStatus, lastPos, Inimove):
             data = RecieveData(c)
             lastPos = GetPosition(data)
             MoveFoward(c)
-        # else:
-        #     lastPos = position
-        #     MoveFoward(c)
 
     return(LoginStatus, lastPos, Inimove)
 
