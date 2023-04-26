@@ -35,7 +35,7 @@ def ServerStart():
         l.close()
 
         print("Address is " + str(address))
-        c.settimeout(10)
+        c.settimeout(1.5)
         try:
 
             LoginStatus = 0
