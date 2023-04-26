@@ -115,18 +115,21 @@ def RecieveUserName1(c, UserName, LoginStatus):
 def MoveFoward(c):
     global ContiMoveFowardCount
     c.send("102 MOVE\a\b".encode())
+    print("Move")
     ContiMoveFowardCount += 1
 
 
 def TurnLeft(c):
     global ContiMoveFowardCount
     c.send("103 TURN LEFT\a\b".encode())
+    print("Left")
     ContiMoveFowardCount = 0
 
 
 def TurnRight(c):
     global ContiMoveFowardCount
     c.send("104 TURN RIGHT\a\b".encode())
+    print("Right")
     ContiMoveFowardCount = 0
 
 
@@ -144,7 +147,7 @@ def Navi(data, c, LoginStatus, lastPos, Inimove):
 
     if (position == lastPos):  # obstactle solve
         global ContiMoveFowardCount
-        if ContiMoveFowardCount > 3:
+        if ContiMoveFowardCount > 2:
             #data = RecieveData(c)
             TurnRight(c)
             data = RecieveData(c)
@@ -163,11 +166,10 @@ def Navi(data, c, LoginStatus, lastPos, Inimove):
             MoveFoward(c)
             data = RecieveData(c)
 
-            TurnRight(c)
-            data = RecieveData(c)
             position = GetPosition(data)
             lastPos = position
-            MoveFoward(c)
+
+            TurnRight(c)
 
             # data = RecieveData(c)
             # position = GetPosition(data)
@@ -275,7 +277,7 @@ def RecieveData(c):
     if len(DataList) < 1:
         data = c.recv(1024).decode()
         T_data = data
-        print("data is: "+str(T_data))
+        #print("data is: "+str(T_data))
         while T_data[-2:] != '\a\b':
             data = c.recv(1024).decode()
             T_data += data
@@ -299,7 +301,7 @@ def RecieveData(c):
 def GetPosition(data):
     input = data.split()
     position = [int(input[i]) for i in range(1, len(input))]
-    print(position)
+    # print(position)
     return position
 
 
