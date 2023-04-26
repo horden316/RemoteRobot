@@ -9,6 +9,8 @@ AuthenticationList = [[23019, 32037], [32037, 29295],
 
 DataList = []
 
+ContiMoveFowardCount = 0
+
 # 0 means the user haven't done anything
 # 1 means got the CLIENT_USERNAME
 # 2 means got the CLIENT_KEY_ID
@@ -44,7 +46,6 @@ def ServerStart():
             dir = 2
             lastPos = [100, 100]
             Inimove = 0  # first time to move
-            Stuck = [0, 0, 0]  # [x,y,Times of robot position not change]
 
             while LoginStatus == 0:
                 UserName, LoginStatus = RecieveUserName1(
@@ -78,7 +79,7 @@ def ServerStart():
                 if (data == ResultHash):
                     # Sending SERVER_CONFIRMATION
                     c.send("200 OK\a\b".encode())
-                    c.send("102 MOVE\a\b".encode())
+                    MoveFoward(c)
                     LoginStatus = 3
                 elif (data != ResultHash):
                     # Sending SERVER_CONFIRMATION
@@ -87,8 +88,8 @@ def ServerStart():
 
             while LoginStatus == 3:  # Successful Login
                 data = RecieveData(c)
-                LoginStatus, lastPos, Inimove, Stuck = Navi(
-                    data, c, LoginStatus, lastPos, Inimove, Stuck)
+                LoginStatus, lastPos, Inimove = Navi(
+                    data, c, LoginStatus, lastPos, Inimove)
 
             c.close()
             break  # child executes only one cycle
@@ -111,7 +112,25 @@ def RecieveUserName1(c, UserName, LoginStatus):
     return UserName, LoginStatus
 
 
-def Navi(data, c, LoginStatus, lastPos, Inimove, Stuck):
+def MoveFoward(c):
+    global ContiMoveFowardCount
+    c.send("102 MOVE\a\b".encode())
+    ContiMoveFowardCount += 1
+
+
+def TurnLeft(c):
+    global ContiMoveFowardCount
+    c.send("103 TURN LEFT\a\b".encode())
+    ContiMoveFowardCount = 0
+
+
+def TurnRight(c):
+    global ContiMoveFowardCount
+    c.send("104 TURN RIGHT\a\b".encode())
+    ContiMoveFowardCount = 0
+
+
+def Navi(data, c, LoginStatus, lastPos, Inimove):
 
     position = GetPosition(data)
     print("position"+str(position))
@@ -119,52 +138,46 @@ def Navi(data, c, LoginStatus, lastPos, Inimove, Stuck):
 
     if Inimove == 0:  # move the robot to guess the robot position
         lastPos = position
-        c.send("102 MOVE\a\b".encode())
+        MoveFoward(c)
         Inimove = 1
-        return LoginStatus, lastPos, Inimove, Stuck
+        return LoginStatus, lastPos, Inimove
 
     if (position == lastPos):  # obstactle solve
-
-        if Stuck == [0, 0, 0]:
-            Stuck[:2] = position
-
-        elif position == Stuck[:2]:
-            Stuck[2] += 1
-
-        else:
-            Stuck = [0, 0, 0]
-
-        if Stuck[2] > 3:
+        global ContiMoveFowardCount
+        if ContiMoveFowardCount > 3:
             #data = RecieveData(c)
-            c.send("104 TURN RIGHT\a\b".encode())
+            TurnRight(c)
             data = RecieveData(c)
-            c.send("102 MOVE\a\b".encode())
-            data = RecieveData(c)
-
-            c.send("103 TURN LEFT\a\b".encode())
-            data = RecieveData(c)
-            c.send("102 MOVE\a\b".encode())
-            data = RecieveData(c)
-            c.send("102 MOVE\a\b".encode())
+            MoveFoward(c)
             data = RecieveData(c)
 
-            c.send("103 TURN LEFT\a\b".encode())
+            TurnLeft(c)
             data = RecieveData(c)
-            c.send("102 MOVE\a\b".encode())
+            MoveFoward(c)
+            data = RecieveData(c)
+            MoveFoward(c)
             data = RecieveData(c)
 
-            c.send("104 TURN RIGHT\a\b".encode())
+            TurnLeft(c)
+            data = RecieveData(c)
+            MoveFoward(c)
+            data = RecieveData(c)
+
+            TurnRight(c)
             data = RecieveData(c)
             position = GetPosition(data)
             lastPos = position
-            c.send("102 MOVE\a\b".encode())
-            Stuck = [0, 0, 0]
+            MoveFoward(c)
 
-            return(LoginStatus, lastPos, Inimove, Stuck)
+            # data = RecieveData(c)
+            # position = GetPosition(data)
+            # lastPos = position
+            # MoveFoward(c)
 
-        print("Stuck"+str(Stuck))
+            return(LoginStatus, lastPos, Inimove)
 
     if (position[0] == 0 and position[1] == 0):
+        print("get message!!!")
         c.send("105 GET MESSAGE\a\b".encode())
         data = RecieveData(c)
         print(data)
@@ -176,72 +189,78 @@ def Navi(data, c, LoginStatus, lastPos, Inimove, Stuck):
     elif position[0] == 0:  # pos on the y-asis
         if (position[0]-lastPos[0] != 0):
             # while robot first arrive the y-asis turn right whatever
-            c.send("104 TURN RIGHT\a\b".encode())
+            TurnRight(c)
             data = RecieveData(c)
             lastPos = position
-            c.send("102 MOVE\a\b".encode())
+            MoveFoward(c)
         if (abs(lastPos[1])-abs(position[1]) == 1):
             lastPos = position
-            c.send("102 MOVE\a\b".encode())
+            MoveFoward(c)
 
         elif (abs(lastPos[1])-abs(position[1]) == -1):
             lastPos = position
-            c.send("104 TURN RIGHT\a\b".encode())
+            TurnRight(c)
             data = RecieveData(c)
-            c.send("104 TURN RIGHT\a\b".encode())
+            TurnRight(c)
             data = RecieveData(c)
             lastPos = GetPosition(data)
-            c.send("102 MOVE\a\b".encode())
+            MoveFoward(c)
+        # else:
+        #     lastPos = position
+        #     MoveFoward(c)
 
     elif position[1] == 0:  # pos on the x-asis
         if (position[1]-lastPos[1] != 0):
             # while robot first arrive the x-asis turn right whatever
-            c.send("104 TURN RIGHT\a\b".encode())
+            TurnRight(c)
             data = RecieveData(c)
             lastPos = position
-            c.send("102 MOVE\a\b".encode())
+            MoveFoward(c)
         if (abs(lastPos[0])-abs(position[0]) == 1):
             lastPos = position
-            c.send("102 MOVE\a\b".encode())
+            MoveFoward(c)
 
         elif (abs(lastPos[0])-abs(position[0]) == -1):
             lastPos = position
-            c.send("104 TURN RIGHT\a\b".encode())
+            TurnRight(c)
             data = RecieveData(c)
-            c.send("104 TURN RIGHT\a\b".encode())
+            TurnRight(c)
             data = RecieveData(c)
             lastPos = GetPosition(data)
-            c.send("102 MOVE\a\b".encode())
+            MoveFoward(c)
+        # else:
+        #     lastPos = position
+        #     MoveFoward(c)
 
     else:  # pos not on the x or y-asis
         if (abs(lastPos[0])-abs(position[0]) == -1):
             lastPos = position
-            c.send("104 TURN RIGHT\a\b".encode())
+            TurnRight(c)
             data = RecieveData(c)
-            c.send("104 TURN RIGHT\a\b".encode())
+            TurnRight(c)
             data = RecieveData(c)
-            c.send("102 MOVE\a\b".encode())
+            MoveFoward(c)
         elif (abs(lastPos[0])-abs(position[0]) == 1):
             lastPos = position
-            c.send("102 MOVE\a\b".encode())
+            MoveFoward(c)
 
         elif (abs(lastPos[1])-abs(position[1]) == 1):
             lastPos = position
-            c.send("102 MOVE\a\b".encode())
+            MoveFoward(c)
 
         elif (abs(lastPos[1])-abs(position[1]) == -1):
             lastPos = position
-            c.send("104 TURN RIGHT\a\b".encode())
+            TurnRight(c)
             data = RecieveData(c)
-            c.send("104 TURN RIGHT\a\b".encode())
+            TurnRight(c)
             data = RecieveData(c)
             lastPos = GetPosition(data)
-            c.send("102 MOVE\a\b".encode())
-        else:
-            lastPos = position
-            c.send("102 MOVE\a\b".encode())
+            MoveFoward(c)
+        # else:
+        #     lastPos = position
+        #     MoveFoward(c)
 
-    return(LoginStatus, lastPos, Inimove, Stuck)
+    return(LoginStatus, lastPos, Inimove)
 
 
 def RecieveData(c):
