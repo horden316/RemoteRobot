@@ -175,6 +175,10 @@ def Navi(data, c, LoginStatus, lastPos, Inimove):
             # MoveFoward(c)
 
             return(LoginStatus, lastPos, Inimove)
+        else:
+            position = GetPosition(data)
+            lastPos = position
+            MoveFoward(c)
 
     if (position[0] == 0 and position[1] == 0):
         print("get message!!!")
