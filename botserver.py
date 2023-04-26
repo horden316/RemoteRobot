@@ -147,7 +147,7 @@ def Navi(data, c, LoginStatus, lastPos, Inimove):
 
     if (position == lastPos):  # obstactle solve
         global ContiMoveFowardCount
-        if ContiMoveFowardCount > 2:
+        if ContiMoveFowardCount > 1:
             #data = RecieveData(c)
             if (abs(position[1]) != 1):
                 TurnRight(c)
@@ -171,7 +171,8 @@ def Navi(data, c, LoginStatus, lastPos, Inimove):
                 lastPos = position
 
                 TurnRight(c)
-            elif (position[0] > 0 and position[1] == 1) or (position[0] < 0 and position[1] == -1):  # Quadrant1 3
+            # Quadrant1 3 to x  Quadrant2 4 to y
+            elif (position[0] > 0 and position[1] == 1) or (position[0] < 0 and position[1] == -1) or (position[1] > 0 and position[0] == -1) or (position[1] < 0 and position[0] == 1):
                 TurnRight(c)
                 data = RecieveData(c)
                 MoveFoward(c)
@@ -186,7 +187,8 @@ def Navi(data, c, LoginStatus, lastPos, Inimove):
 
                 TurnRight(c)
 
-            elif (position[0] < 0 and position[1] == 1) or (position[0] > 0 and position[1] == -1):  # Quadrant2 4
+            # Quadrant2 4 to x Quadrant1 3 to y
+            elif (position[0] < 0 and position[1] == 1) or (position[0] > 0 and position[1] == -1) or (position[0] > 0 and position[0] == 1) or (position[0] < 0 and position[0] == -1):
                 TurnLeft(c)
                 data = RecieveData(c)
                 MoveFoward(c)
