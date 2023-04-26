@@ -148,7 +148,16 @@ def Navi(data, c, LoginStatus, lastPos, Inimove):
     if (position == lastPos):  # obstactle solve
         global ContiMoveFowardCount
         if ContiMoveFowardCount > 1:
-            #data = RecieveData(c)
+
+            # if abs(position[0])-abs(Inimove[0]) > 1 or abs(position[1])-abs(Inimove[1]) > 1:
+            #     TurnRight(c)
+            #     data = RecieveData(c)
+            #     Inimove = [100, 100]
+            #     TurnRight(c)
+            #     print("INvertttttttt")
+            #     return LoginStatus, lastPos, Inimove
+
+            # data = RecieveData(c)
             if (abs(position[1]) != 1):
                 TurnRight(c)
                 data = RecieveData(c)
@@ -157,20 +166,12 @@ def Navi(data, c, LoginStatus, lastPos, Inimove):
 
                 TurnLeft(c)
                 data = RecieveData(c)
-                MoveFoward(c)
-                data = RecieveData(c)
-                MoveFoward(c)
-                data = RecieveData(c)
-
-                TurnLeft(c)
-                data = RecieveData(c)
-                MoveFoward(c)
-                data = RecieveData(c)
 
                 position = GetPosition(data)
                 lastPos = position
 
-                TurnRight(c)
+                MoveFoward(c)
+
             # Quadrant1 3 to x  Quadrant2 4 to y
             elif (position[0] > 0 and position[1] == 1) or (position[0] < 0 and position[1] == -1) or (position[1] > 0 and position[0] == -1) or (position[1] < 0 and position[0] == 1):
                 TurnRight(c)
@@ -296,18 +297,18 @@ def Navi(data, c, LoginStatus, lastPos, Inimove):
 def RecieveData(c):
     global DataList
 
-    #print("len is :"+str(len(DataList)))
-    #print("datalist is :" + str(DataList))
+    # print("len is :"+str(len(DataList)))
+    # print("datalist is :" + str(DataList))
     if len(DataList) < 1:
         data = c.recv(1024).decode()
         T_data = data
-        #print("data is: "+str(T_data))
+        # print("data is: "+str(T_data))
         while T_data[-2:] != '\a\b':
             data = c.recv(1024).decode()
             T_data += data
 
         if '\a\b' in T_data:
-            #print("legal data")
+            # print("legal data")
             T_data = T_data[:-2]
 
         DataList.extend(T_data.split('\a\b'))
@@ -318,7 +319,7 @@ def RecieveData(c):
 
     DataList = DataList[0:]
     # sleep(1)
-    #print("Reteun data is :" + str(returnData))
+    # print("Reteun data is :" + str(returnData))
     return returnData
 
 
