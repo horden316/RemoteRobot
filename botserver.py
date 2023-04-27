@@ -139,6 +139,16 @@ def Navi(data, c, LoginStatus, lastPos, Inimove):
     print("position"+str(position))
     print("lastPos"+str(lastPos))
 
+    if (position[0] == 0 and position[1] == 0):
+        print("get message!!!")
+        c.send("105 GET MESSAGE\a\b".encode())
+        data = c.recv(1024).decode("utf-8")
+        print(data)
+        c.send("106 LOGOUT\a\b".encode())
+
+        LoginStatus = 4
+        return LoginStatus, lastPos, Inimove
+
     if Inimove == 0:  # move the robot to guess the robot position
         lastPos = position
         MoveFoward(c)
@@ -158,7 +168,7 @@ def Navi(data, c, LoginStatus, lastPos, Inimove):
             #     return LoginStatus, lastPos, Inimove
 
             # data = RecieveData(c)
-            if (abs(position[1]) != 1):
+            if (abs(position[1]) != 1) and not(position[0] == 0 or position[1] == 0):
                 TurnRight(c)
                 data = RecieveData(c)
                 MoveFoward(c)
@@ -171,6 +181,31 @@ def Navi(data, c, LoginStatus, lastPos, Inimove):
                 lastPos = position
 
                 MoveFoward(c)
+                return(LoginStatus, lastPos, Inimove)
+
+            elif (position[0] == 0 or position[1] == 0):
+                TurnRight(c)
+                data = RecieveData(c)
+                MoveFoward(c)
+                data = RecieveData(c)
+
+                TurnLeft(c)
+                data = RecieveData(c)
+                MoveFoward(c)
+                data = RecieveData(c)
+                MoveFoward(c)
+                data = RecieveData(c)
+
+                TurnLeft(c)
+                data = RecieveData(c)
+                MoveFoward(c)
+                data = RecieveData(c)
+
+                position = GetPosition(data)
+                lastPos = position
+
+                TurnRight(c)
+                return(LoginStatus, lastPos, Inimove)
 
             # Quadrant1 3 to x  Quadrant2 4 to y
             elif (position[0] > 0 and position[1] == 1) or (position[0] < 0 and position[1] == -1) or (position[1] > 0 and position[0] == -1) or (position[1] < 0 and position[0] == 1):
@@ -187,6 +222,7 @@ def Navi(data, c, LoginStatus, lastPos, Inimove):
                 lastPos = position
 
                 TurnRight(c)
+                return(LoginStatus, lastPos, Inimove)
 
             # Quadrant2 4 to x Quadrant1 3 to y
             elif (position[0] < 0 and position[1] == 1) or (position[0] > 0 and position[1] == -1) or (position[0] > 0 and position[0] == 1) or (position[0] < 0 and position[0] == -1):
@@ -203,6 +239,7 @@ def Navi(data, c, LoginStatus, lastPos, Inimove):
                 lastPos = position
 
                 TurnLeft(c)
+                return(LoginStatus, lastPos, Inimove)
 
             return(LoginStatus, lastPos, Inimove)
         else:
@@ -210,23 +247,21 @@ def Navi(data, c, LoginStatus, lastPos, Inimove):
             lastPos = position
             MoveFoward(c)
 
-    if (position[0] == 0 and position[1] == 0):
-        print("get message!!!")
-        c.send("105 GET MESSAGE\a\b".encode())
-        data = RecieveData(c)
-        print(data)
-        c.send("106 LOGOUT\a\b".encode())
-
-        LoginStatus = 4
-        # recieve message
-
-    elif position[0] == 0:  # pos on the y-asis
+    if position[0] == 0:  # pos on the y-asis
         if (position[0]-lastPos[0] != 0):
             # while robot first arrive the y-asis turn right whatever
-            TurnRight(c)
-            data = RecieveData(c)
-            lastPos = position
-            MoveFoward(c)
+            if (lastPos[0] < 0 and lastPos[1] > 0) or (lastPos[0] > 0 and lastPos[1] < 0):  # 2 4
+                TurnRight(c)
+                data = RecieveData(c)
+                lastPos = position
+                MoveFoward(c)
+
+            elif (lastPos[0] > 0 and lastPos[1] > 0) or (lastPos[0] < 0 and lastPos[1] < 0):  # 1 3
+                TurnLeft(c)
+                data = RecieveData(c)
+                lastPos = position
+                MoveFoward(c)
+
         if (abs(lastPos[1])-abs(position[1]) == 1):
             lastPos = position
             MoveFoward(c)
@@ -246,10 +281,17 @@ def Navi(data, c, LoginStatus, lastPos, Inimove):
     elif position[1] == 0:  # pos on the x-asis
         if (position[1]-lastPos[1] != 0):
             # while robot first arrive the x-asis turn right whatever
-            TurnRight(c)
-            data = RecieveData(c)
-            lastPos = position
-            MoveFoward(c)
+            if (lastPos[0] < 0 and lastPos[1] > 0) or (lastPos[0] > 0 and lastPos[1] < 0):  # 2 4
+                TurnRight(c)
+                data = RecieveData(c)
+                lastPos = position
+                MoveFoward(c)
+
+            elif (lastPos[0] > 0 and lastPos[1] > 0) or (lastPos[0] < 0 and lastPos[1] < 0):  # 1 3
+                TurnLeft(c)
+                data = RecieveData(c)
+                lastPos = position
+                MoveFoward(c)
         if (abs(lastPos[0])-abs(position[0]) == 1):
             lastPos = position
             MoveFoward(c)
