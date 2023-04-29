@@ -52,8 +52,14 @@ def ServerStart():
                     c, UserName, LoginStatus)
 
             while LoginStatus == 1:
-                data = RecieveData(c)
-                data = int(data)
+                try:
+                    data = RecieveData(c)
+                    data = int(data)
+                except:
+                    c.send("301 SYNTAX ERROR\a\b".encode())
+                    c.close()
+                    LoginStatus = 4
+
                 KeyID = data
                 if KeyID > 4:
                     c.send("303 KEY OUT OF RANGE\a\b".encode())
@@ -70,6 +76,12 @@ def ServerStart():
 
             while LoginStatus == 2:
                 data = RecieveData(c)
+                if (data[-1:] == " " or len(data) > 5):
+                    c.send("301 SYNTAX ERROR\a\b".encode())
+                    c.close()
+                    LoginStatus = 4
+                    break
+
                 data = int(data)
                 NameASCI = [ord(char) for char in UserName]
                 print("Name Ascii is : " + str(NameASCI))
@@ -135,7 +147,7 @@ def TurnRight(c):
 
 def Navi(data, c, LoginStatus, lastPos, Inimove):
 
-    position = GetPosition(data)
+    position = GetPosition(data, c)
     print("position"+str(position))
     print("lastPos"+str(lastPos))
 
@@ -177,7 +189,7 @@ def Navi(data, c, LoginStatus, lastPos, Inimove):
                 TurnLeft(c)
                 data = RecieveData(c)
 
-                position = GetPosition(data)
+                position = GetPosition(data, c)
                 lastPos = position
 
                 MoveFoward(c)
@@ -201,7 +213,7 @@ def Navi(data, c, LoginStatus, lastPos, Inimove):
                 MoveFoward(c)
                 data = RecieveData(c)
 
-                position = GetPosition(data)
+                position = GetPosition(data, c)
                 lastPos = position
 
                 TurnRight(c)
@@ -218,7 +230,7 @@ def Navi(data, c, LoginStatus, lastPos, Inimove):
                 MoveFoward(c)
                 data = RecieveData(c)
 
-                position = GetPosition(data)
+                position = GetPosition(data, c)
                 lastPos = position
 
                 TurnRight(c)
@@ -235,7 +247,7 @@ def Navi(data, c, LoginStatus, lastPos, Inimove):
                 MoveFoward(c)
                 data = RecieveData(c)
 
-                position = GetPosition(data)
+                position = GetPosition(data, c)
                 lastPos = position
 
                 TurnLeft(c)
@@ -243,7 +255,7 @@ def Navi(data, c, LoginStatus, lastPos, Inimove):
 
             return(LoginStatus, lastPos, Inimove)
         else:
-            position = GetPosition(data)
+            position = GetPosition(data, c)
             lastPos = position
             MoveFoward(c)
 
@@ -272,7 +284,7 @@ def Navi(data, c, LoginStatus, lastPos, Inimove):
             data = RecieveData(c)
             TurnRight(c)
             data = RecieveData(c)
-            lastPos = GetPosition(data)
+            lastPos = GetPosition(data, c)
             MoveFoward(c)
         # else:
         #     lastPos = position
@@ -302,7 +314,7 @@ def Navi(data, c, LoginStatus, lastPos, Inimove):
             data = RecieveData(c)
             TurnRight(c)
             data = RecieveData(c)
-            lastPos = GetPosition(data)
+            lastPos = GetPosition(data, c)
             MoveFoward(c)
         # else:
         #     lastPos = position
@@ -330,7 +342,7 @@ def Navi(data, c, LoginStatus, lastPos, Inimove):
             data = RecieveData(c)
             TurnRight(c)
             data = RecieveData(c)
-            lastPos = GetPosition(data)
+            lastPos = GetPosition(data, c)
             MoveFoward(c)
 
     return(LoginStatus, lastPos, Inimove)
@@ -365,10 +377,16 @@ def RecieveData(c):
     return returnData
 
 
-def GetPosition(data):
+def GetPosition(data, c):
+    if data[-1:] == " ":
+        c.send("301 SYNTAX ERROR\a\b".encode())
+        c.close()
     input = data.split()
-    position = [int(input[i]) for i in range(1, len(input))]
-    # print(position)
+    try:
+        position = [int(input[i]) for i in range(1, len(input))]
+    except:
+        c.send("301 SYNTAX ERROR\a\b".encode())
+        c.close()
     return position
 
 
